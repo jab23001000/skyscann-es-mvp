@@ -10,40 +10,21 @@ type PlanReq = {
   prefs?: { hasCar?: boolean; avoidModes?: string[]; maxTransfers?: number; };
 };
 
-
-// app/api/plan/route.ts para probar
-import { NextRequest, NextResponse } from "next/server";
-
-export async function GET() {
-  return NextResponse.json({ ok: true, method: "GET", msg: "plan endpoint vivo" });
-}
-
-export async function POST(req: NextRequest) {
-  let body: any = null;
-  try { body = await req.json(); } catch {}
-  return NextResponse.json({ ok: true, method: "POST", received: body ?? null });
-}
-
-
-
-
-
-
-
-
-
-
-
 function rank(o: { price: number; durationMin: number; stops: number; risk?: number }) {
-  // Pesos MVP (guardados en tu proyecto): price 0.40, duration 0.35, transfers 0.15, connection_risk 0.10
   const priceW=0.40, durW=0.35, stopsW=0.15, riskW=0.10;
-  const p = Math.min(o.price/200, 1);        // normalización simple
-  const d = Math.min(o.durationMin/300, 1);  // 5h top
+  const p = Math.min(o.price/200, 1);
+  const d = Math.min(o.durationMin/300, 1);
   const s = Math.min(o.stops/2, 1);
   const r = Math.min((o.risk ?? 0)/1, 1);
   return +(1 - (p*priceW + d*durW + s*stopsW + r*riskW)).toFixed(4);
 }
 
+// Handler opcional de salud (GET)
+export async function GET() {
+  return NextResponse.json({ ok: true, method: "GET", msg: "plan endpoint vivo" });
+}
+
+// Handler principal (POST)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as PlanReq;
@@ -52,7 +33,7 @@ export async function POST(req: NextRequest) {
     }
 
     const fromNorm = ccaaToCapital(body.from) ?? body.from;
-    const toNorm = ccaaToCapital(body.to) ?? body.to;
+    const toNorm   = ccaaToCapital(body.to)   ?? body.to;
 
     const key = makeKey("plan", { ...body, fromNorm, toNorm });
     const cached = await cacheGet<any>(key);
@@ -60,11 +41,11 @@ export async function POST(req: NextRequest) {
 
     // 1) Baseline coche
     const car = await getCarRoute(fromNorm, toNorm); // {km, durationMin, costEUR}
-    const maxDuration = car.durationMin * 3; // regla del MVP
+    const maxDuration = car.durationMin * 3;
 
-    // 2) Aeropuertos cercanos (MVP: por ciudad exacta o fallback)
+    // 2) Aeropuertos cercanos (MVP)
     const fromAP = findCityAirports(fromNorm, 2);
-    const toAP = findCityAirports(toNorm, 2);
+    const toAP   = findCityAirports(toNorm, 2);
 
     // 3) Vuelos cross-product
     const queries: Promise<any>[] = [];
@@ -97,7 +78,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4) Añadir baseline coche como opción comparativa
+    // 4) Añadir baseline coche
     offers.push({
       id: "car-baseline", mode: "car",
       price: car.costEUR, currency: "EUR",
@@ -106,7 +87,7 @@ export async function POST(req: NextRequest) {
       score: rank({ price: car.costEUR, durationMin: car.durationMin, stops: 0 })
     });
 
-    // 5) Ordenar por score y recortar
+    // 5) Orden y respuesta
     offers.sort((a,b) => b.score - a.score);
     const response = {
       origin: fromNorm, destination: toNorm, date: body.date,
