@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCarRoute } from "@/app/api/services/openrouteservice";
 import { searchFlights } from "@/app/api/services/amadeus";
-import { makeKey, getCache, setCache } from "@/app/api/utils/cache";
+import { makeKey, cacheGet, cacheSet } from "@/app/api/utils/cache";
 import { ccaaToCapital } from "@/app/api/utils/datasets"; // dataset con capitales de CCAA
 
 type PlanReq = {
