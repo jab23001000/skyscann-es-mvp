@@ -32,12 +32,18 @@ export async function getCarRoute(fromCity: string, toCity: string) {
 
   // 2) Directions por GET (más estable)
   const dir = new URL("https://api.openrouteservice.org/v2/directions/driving-car");
-  dir.searchParams.set("start", `${o.lon},${o.lat}`); // OJO: lon,lat
+  dir.searchParams.set("start", `${o.lon},${o.lat}`); // lon,lat
   dir.searchParams.set("end",   `${d.lon},${d.lat}`);
 
   const res = await fetch(dir.toString(), {
-    headers: { Authorization: key, Accept: "application/json" }
+    headers: {
+      Authorization: key,
+      // 👇 ORS te exige GeoJSON
+      Accept: "application/geo+json"
+    }
   });
+// ...
+
 
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
