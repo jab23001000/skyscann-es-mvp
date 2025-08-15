@@ -47,13 +47,8 @@ export async function POST(req: NextRequest) {
 
     // ... resto del código ...
 
-
-
-
-    
-    const fromNorm = ccaaToCapital(body.from) ?? body.from;
-    const toNorm   = ccaaToCapital(body.to)   ?? body.to;
-
+   
+  
     const key = makeKey("plan", { ...body, fromNorm, toNorm });
     const cached = await cacheGet<any>(key);
     if (cached) return NextResponse.json({ ...cached, cached: true });
