@@ -1,12 +1,12 @@
 // app/api/utils/cache.ts
 import { Redis } from "@upstash/redis";
-import ohash from "ohash";
+import { hash } from "ohash";
 
 const redis = Redis.fromEnv();
 
 /** Construye una clave hashada y estable a partir de un payload */
 export function makeKey(prefix: string, payload: unknown) {
-  return `${prefix}:${ohash.hash(payload)}`;
+  return `${prefix}:${hash(payload)}`;
 }
 
 /** Lee desde caché. Devuelve null si no existe o si hay error. */
