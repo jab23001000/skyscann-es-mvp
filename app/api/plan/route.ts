@@ -37,7 +37,11 @@ export async function POST(req: NextRequest) {
     const maxDuration = car.durationMin * 3; // regla: máximo 3x duración coche
 
     // 2) Vuelos (MVP: solo modo flight)
-    const flights = await searchFlights(fromNorm, toNorm, body.date);
+const flights = await searchFlights({
+  originIATA: fromNorm,
+  destIATA: toNorm,
+  date: body.date
+});
 
     // 3) Filtrar por tiempo máximo
     const filteredFlights = flights.filter(f => f.durationMin <= maxDuration);
