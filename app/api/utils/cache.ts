@@ -15,7 +15,7 @@ export function makeKey(prefix: string, obj: any) {
 /**
  * Lee un valor del caché
  */
-export async function getCache<T = any>(key: string): Promise<T | null> {
+export async function CacheGet<T = any>(key: string): Promise<T | null> {
   try {
     return await redis.get(key) as T | null;
   } catch (err) {
@@ -27,7 +27,7 @@ export async function getCache<T = any>(key: string): Promise<T | null> {
 /**
  * Guarda un valor en el caché con TTL en segundos
  */
-export async function setCache<T = any>(key: string, value: T, ttlSeconds = 3600) {
+export async function CacheSet<T = any>(key: string, value: T, ttlSeconds = 3600) {
   try {
     await redis.set(key, value, { ex: ttlSeconds });
   } catch (err) {
