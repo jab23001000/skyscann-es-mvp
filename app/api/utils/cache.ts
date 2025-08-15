@@ -2,8 +2,13 @@
 import { Redis } from "@upstash/redis";
 const redis = Redis.fromEnv();
 
-export function makeKey(parts: string[]) {
-  return parts.join(":");
+
+export function makeKey(...parts: (string | number | object)[]) {
+  return parts
+    .map(p => typeof p === "object" ? JSON.stringify(p) : String(p))
+    .join(":");
+}
+
 }
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
