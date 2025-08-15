@@ -10,6 +10,30 @@ type PlanReq = {
   prefs?: { hasCar?: boolean; avoidModes?: string[]; maxTransfers?: number; };
 };
 
+
+// app/api/plan/route.ts para probar
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, method: "GET", msg: "plan endpoint vivo" });
+}
+
+export async function POST(req: NextRequest) {
+  let body: any = null;
+  try { body = await req.json(); } catch {}
+  return NextResponse.json({ ok: true, method: "POST", received: body ?? null });
+}
+
+
+
+
+
+
+
+
+
+
+
 function rank(o: { price: number; durationMin: number; stops: number; risk?: number }) {
   // Pesos MVP (guardados en tu proyecto): price 0.40, duration 0.35, transfers 0.15, connection_risk 0.10
   const priceW=0.40, durW=0.35, stopsW=0.15, riskW=0.10;
