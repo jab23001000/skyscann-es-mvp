@@ -32,6 +32,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "from, to y date son obligatorios (YYYY-MM-DD)" }, { status: 400 });
     }
 
+    // Normalizar origen y destino (capital si es CCAA)
+    const fromNorm = ccaaToCapital(body.from) ?? body.from;
+    const toNorm   = ccaaToCapital(body.to)   ?? body.to;
+
+    // 1) Baseline coche
+    let car;
+    try {
+      car = await getCarRoute(fromNorm, toNorm); // {km, durationMin, costEUR}
+    } catch (e: any) {
+      return NextResponse.json({ step: "car", error: e?.message ?? String(e), fromNorm, toNorm }, { status: 500 });
+    }
+    const maxDuration = car.durationMin * 3;
+
+    // ... resto del código ...
+
+
+
+
+    
     const fromNorm = ccaaToCapital(body.from) ?? body.from;
     const toNorm   = ccaaToCapital(body.to)   ?? body.to;
 
