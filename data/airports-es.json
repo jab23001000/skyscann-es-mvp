@@ -1,0 +1,12 @@
+[
+  { "iata": "MAD", "name": "Adolfo Suárez Madrid-Barajas", "city": "Madrid", "lat": 40.4722, "lon": -3.5608 },
+  { "iata": "BCN", "name": "Barcelona-El Prat", "city": "Barcelona", "lat": 41.2971, "lon": 2.0785 },
+  { "iata": "AGP", "name": "Málaga-Costa del Sol", "city": "Málaga", "lat": 36.6749, "lon": -4.4991 },
+  { "iata": "SVQ", "name": "Sevilla", "city": "Sevilla", "lat": 37.4179, "lon": -5.8931 },
+  { "iata": "VLC", "name": "Valencia", "city": "Valencia", "lat": 39.4893, "lon": -0.4816 },
+  { "iata": "BIO", "name": "Bilbao", "city": "Bilbao", "lat": 43.3011, "lon": -2.9106 },
+  { "iata": "SCQ", "name": "Santiago de Compostela", "city": "Santiago de Compostela", "lat": 42.8963, "lon": -8.4151 },
+  { "iata": "PMI", "name": "Palma de Mallorca", "city": "Palma", "lat": 39.5517, "lon": 2.7388 },
+  { "iata": "TFN", "name": "Tenerife Norte", "city": "San Cristóbal de La Laguna", "lat": 28.4827, "lon": -16.3415 },
+  { "iata": "TFS", "name": "Tenerife Sur", "city": "Granadilla de Abona", "lat": 28.0445, "lon": -16.5725 }
+]
