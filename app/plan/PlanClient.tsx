@@ -3,12 +3,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-// Ajusta estos tipos si tu /api/plan devuelve un shape distinto
-type Segment = { departure: string; arrival: string; duration_minutes: number; segments?: string[] };
+// Tipos (ajusta si tu /api/plan varía)
+type Segment = {
+  departure: string;
+  arrival: string;
+  duration_minutes: number;
+  segments?: string[];
+};
 type Flight = {
   id: string;
-  price_total: number;
-  currency: string;
+  price_total?: number;       // <-- opcional por seguridad
+  currency?: string;          // <-- opcional por seguridad
   carriers: string[];
   stops: number;
   duration_total_minutes: number;
@@ -16,27 +21,43 @@ type Flight = {
   inbound: Segment | null;
   score?: number;
 };
-type CarBaseline = { distance_km: number; duration_minutes: number; cost_eur: number };
+type CarBaseline = {
+  distance_km?: number;       // <-- opcionales por seguridad
+  duration_minutes?: number;
+  cost_eur?: number;
+};
 type PlanResponse = {
   origin: string;
   destination: string;
   cached?: boolean;
-  car: CarBaseline;
+  car?: CarBaseline;          // <-- opcional por seguridad
   flights: Flight[];
 };
 
-function minsToHM(m: number) {
+function isFiniteNum(x: any): x is number {
+  return typeof x === "number" && Number.isFinite(x);
+}
+function minsToHM(m?: number) {
+  if (!isFiniteNum(m)) return "—";
   const h = Math.floor(m / 60);
   const mm = m % 60;
   return `${h}h ${mm}m`;
 }
-function fmtDT(iso: string) {
+function fmtDT(iso?: string) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const s = d.toString();
+  if (s === "Invalid Date") return "—";
   try {
-    const d = new Date(iso);
     return d.toLocaleString();
   } catch {
-    return iso;
+    return "—";
   }
+}
+function clamp01(x: any) {
+  const n = Number(x);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(1, n));
 }
 
 export default function PlanClient() {
@@ -82,74 +103,14 @@ export default function PlanClient() {
     return <p className="text-neutral-400">Introduce origen y destino en la página principal.</p>;
   }
 
+  const car = data?.car ?? {};
+  const carDistance = isFiniteNum(car.distance_km) ? Math.round(car.distance_km!).toString() + " km" : "—";
+  const carDuration = minsToHM(car.duration_minutes);
+  const carCost = isFiniteNum(car.cost_eur) ? `~ ${Math.round(car.cost_eur!).toString()} €` : "—";
+  const carDurationMinutes = isFiniteNum(car.duration_minutes) ? car.duration_minutes! : undefined;
+
   return (
     <section className="grid gap-6">
-      {loading && <p>Calculando rutas y vuelos…</p>}
-      {err && <p className="text-red-400">Error: {err}</p>}
-
-      {data && (
-        <>
-          <div className="rounded-2xl p-4 bg-neutral-900 shadow">
-            <h2 className="text-xl mb-2">Baseline en coche</h2>
-            <div className="grid md:grid-cols-3 gap-3 text-neutral-200">
-              <div>
-                <span className="text-neutral-400">Distancia</span>
-                <div className="text-lg">{data.car.distance_km.toFixed(0)} km</div>
-              </div>
-              <div>
-                <span className="text-neutral-400">Duración</span>
-                <div className="text-lg">{minsToHM(data.car.duration_minutes)}</div>
-              </div>
-              <div>
-                <span className="text-neutral-400">Coste estimado</span>
-                <div className="text-lg">~ {data.car.cost_eur.toFixed(0)} €</div>
-              </div>
-            </div>
-            <p className="text-xs text-neutral-400 mt-2">
-              Regla aplicada: descartamos opciones &gt; 3× {minsToHM(data.car.duration_minutes)}.
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-            <h2 className="text-xl">Vuelos (ordenados por score)</h2>
-            {flightsSorted.length === 0 && <p>No hay opciones dentro del límite 3× coche.</p>}
-            <ul className="grid gap-3">
-              {flightsSorted.map((f) => (
-                <li key={f.id} className="rounded-2xl p-4 bg-neutral-900 shadow">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-lg font-medium">
-                        {f.carriers.join(", ")} · {f.stops === 0 ? "Directo" : `${f.stops} escala${f.stops > 1 ? "s" : ""}`}
-                      </div>
-                      <div className="text-sm text-neutral-300">
-                        {fmtDT(f.outbound?.departure)} → {fmtDT(f.outbound?.arrival)} · {minsToHM(f.duration_total_minutes)}
-                      </div>
-                      {f.inbound && (
-                        <div className="text-sm text-neutral-300">
-                          Regreso: {fmtDT(f.inbound?.departure)} → {fmtDT(f.inbound?.arrival)} · {minsToHM(f.inbound?.duration_minutes)}
-                        </div>
-                      )}
-                      <div className="mt-2 h-2 rounded bg-neutral-800 overflow-hidden">
-                        <div
-                          className="h-2 bg-indigo-500"
-                          style={{ width: `${Math.min(100, Math.max(0, Math.round((f.score ?? 0) * 100)))}%` }}
-                          title={`score ${(f.score ?? 0).toFixed(2)}`}
-                        />
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-semibold">
-                        {f.price_total.toFixed(0)} {f.currency}
-                      </div>
-                      <div className="text-xs text-neutral-400">score {(f.score ?? 0).toFixed(2)}</div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      )}
-    </section>
-  );
-}
+      <div className="flex items-center gap-3">
+        <h2 className="text-xl font-semibold">
+          {from} → {to} {date ? `· ${date}`
