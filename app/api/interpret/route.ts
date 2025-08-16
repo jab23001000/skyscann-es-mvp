@@ -1,24 +1,26 @@
+// Asegura que use Node.js (el SDK de OpenAI no funciona en Edge)
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-
 import { NextRequest, NextResponse } from "next/server";
-import { findCityAirports, normalizeByCCAA } from "../utils/datasets"; // ajusta la ruta real
 import OpenAI from "openai";
+import { ccaaToCapital, findCityAirports } from "../utils/datasets";
 
-const MODEL = process.env.OPENAI_MODEL || "gpt-5-mini"; // ajusta si usas otro
+const MODEL = process.env.OPENAI_MODEL || "gpt-5-mini";
 
 function pickName(input: string): string | null {
-  const txt = (input || "").trim();
+  const txt = (input ?? "").trim();
   if (!txt) return null;
-  // 1) CCAA → capital
-  const byCcaa = normalizeByCCAA(txt); // devuelve string | null
-  if (byCcaa) return byCcaa;
 
-  // 2) Ciudad conocida → la devolvemos tal cual si hay aeropuertos asociados
+  // 1) Si es una CCAA, devuelve su capital
+  const capital = ccaaToCapital(txt); // string | null
+  if (capital) return capital;
+
+  // 2) Si es una ciudad conocida con aeropuertos asociados, la damos por válida
   const ap = findCityAirports(txt);
   if (ap && ap.length > 0) return txt;
 
+  // 3) No se pudo normalizar localmente
   return null;
 }
 
@@ -28,9 +30,10 @@ export async function POST(req: NextRequest) {
     let f = pickName(from);
     let t = pickName(to);
 
-    if (!f || !t) {
-      // Fallback GPT
+    // Solo usamos GPT si hace falta y hay API key configurada
+    if ((!f || !t) && process.env.OPENAI_API_KEY) {
       const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
       const prompt = `
 Eres un normalizador de ubicaciones en España. Dado un origen y un destino escritos por un usuario, devuelve JSON estricto:
 {"from":"<ciudad o CCAA capitalizada>","to":"<ciudad o CCAA capitalizada>"}
@@ -53,15 +56,19 @@ to="${to}"
       const text = r.output_text?.trim() || "";
       try {
         const parsed = JSON.parse(text);
-        if (!f) f = parsed.from;
-        if (!t) t = parsed.to;
+        if (!f && parsed?.from) f = parsed.from;
+        if (!t && parsed?.to) t = parsed.to;
       } catch {
-        // Si GPT falla, mantenemos lo que haya
+        // Si GPT respondió algo no-JSON, seguimos con lo que tengamos
       }
     }
 
+    // Fallback final: si no se pudo normalizar, devolvemos los valores originales
     return NextResponse.json({ ok: true, from: f ?? from, to: t ?? to });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "unknown" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: e?.message || "unknown" },
+      { status: 500 }
+    );
   }
 }
