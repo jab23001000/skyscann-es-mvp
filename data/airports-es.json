@@ -8,6 +8,6 @@
   { "iata": "SCQ", "name": "Santiago de Compostela", "city": "Santiago de Compostela", "lat": 42.8963, "lon": -8.4151 },
   { "iata": "PMI", "name": "Palma de Mallorca", "city": "Palma", "lat": 39.5517, "lon": 2.7388 },
   { "iata": "TFN", "name": "Tenerife Norte", "city": "San Cristóbal de La Laguna", "lat": 28.4827, "lon": -16.3415 },
-  { "iata": "TFS", "name": "Tenerife Sur", "city": "Granadilla de Abona", "lat": 28.0445, "lon": -16.5725 }
+  { "iata": "TFS", "name": "Tenerife Sur", "city": "Granadilla de Abona", "lat": 28.0445, "lon": -16.5725 },
   { "iata": "PNA", "name": "Pamplona", "city": "Pamplona", "lat": 42.7700, "lon": -1.6460 }
 ]
