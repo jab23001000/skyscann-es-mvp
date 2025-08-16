@@ -1,3 +1,7 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+
 import { NextRequest, NextResponse } from "next/server";
 import { findCityAirports, normalizeByCCAA } from "../utils/datasets"; // ajusta la ruta real
 import OpenAI from "openai";
