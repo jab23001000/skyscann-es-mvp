@@ -1,19 +1,5 @@
 import Image from "next/image";
 
-"use client";
-import React from "react";
-import SearchForm from "./components/SearchForm";
-
-export default function HomePage() {
-  return (
-    <main className="min-h-screen p-6">
-      <h1 className="text-2xl font-semibold mb-4">Skyscann ES MVP</h1>
-      <SearchForm />
-      {/* Aquí puedes mantener cualquier otro contenido existente (top rutas, etc.) */}
-    </main>
-  );
-}
-
 export default function Home() {
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
